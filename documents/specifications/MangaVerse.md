@@ -22,7 +22,7 @@ MangaVerse aims to create a social network where you can converse with people, t
 
 ## Stacks 
 
-    Front-end : React
+    Front-end : React OR Angular
     Back-end : Symfony 
     Database : MongoDB AND MySQL
 
