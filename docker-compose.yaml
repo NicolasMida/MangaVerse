@@ -1,43 +1,61 @@
 services:
-  php:
-    image: php:8.2-fpm
-    container_name: php
-    volumes:
-      - ./src:/var/www/html
-    networks:
-      - my_network
-
   nginx:
-    image: nginx:latest
-    container_name: nginx
+    image: 'nginx:1.25-alpine3.18'
+    container_name: nginx_server
+    working_dir: '/www'
     ports:
       - "8080:80"
     volumes:
-      - ./src:/var/www/html
-      - ./nginx/conf.d/default.conf:/nginx/conf.d/default.conf
-    depends_on:
-      - php
+      - './symfony:/www/symfony'
+      - './.docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf'
+    networks:
+      - my_network
+
+  php_sf:
+    container_name: php_sf
+    build: ./.docker/php
+    working_dir: /www/symfony
+    user: '1000'
+    volumes:
+      - './symfony/:/www/symfony'
+      - './symfony/var:/www/symfony/var'
+      - './symfony/vendor:/www/symfony/vendor'
+      - './.docker/php/php-ini-overrides.ini:/etc/php/8.2/fpm/conf.d/99-overrides.ini'
+    networks:
+      - my_network
+
+  composer_sf:
+    container_name: composer_sf
+    image: 'composer:2.5.8'
+    user: '1000:1000'
+    working_dir: /www/symfony
+    volumes:
+      - './symfony:/www/symfony'
+      - './.docker/composer/cache:/tmp/cache'
+    tty: true
+    stdin_open: true
+    command: [ "bash" ]
     networks:
       - my_network
 
   mysql:
     container_name: db_mysql
-    image: mysql:latest
+    image: 'mysql:latest'
     environment:
-      MYSQL_ROOT_PASSWORD: passroot
+      MYSQL_ROOT_PASSWORD: PasswordRoot
       MYSQL_DATABASE: db_manga-verse
       MYSQL_USER: admin-mv
-      MYSQL_PASSWORD: azerty         
+      MYSQL_PASSWORD: azerty1234
     ports:
       - "3306:3306"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - './mysql_data:/var/lib/mysql'
     networks:
       - my_network
 
   mongo:
     container_name: db_mongo
-    image: mongo:latest
+    image: 'mongo:latest'
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: test
