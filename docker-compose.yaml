@@ -1,0 +1,54 @@
+services:
+  php:
+    image: php:8.2-fpm
+    container_name: php
+    volumes:
+      - ./src:/var/www/html
+    networks:
+      - my_network
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./src:/var/www/html
+      - ./nginx/conf.d/default.conf:/nginx/conf.d/default.conf
+    depends_on:
+      - php
+    networks:
+      - my_network
+
+  mysql:
+    container_name: db_mysql
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: passroot
+      MYSQL_DATABASE: db_manga-verse
+      MYSQL_USER: admin-mv
+      MYSQL_PASSWORD: azerty         
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - my_network
+
+  mongo:
+    container_name: db_mongo
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: test
+    ports:
+      - "27017:27017"
+    networks:
+      - my_network
+
+networks:
+  my_network:
+
+volumes:
+  mysql_data:
+  mongo_data:
