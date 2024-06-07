@@ -1,0 +1,64 @@
+services:
+    frontend:
+        build:
+            context: ./frontend
+            dockerfile: Dockerfile
+        container_name: reactjs
+        ports:
+            - "3000:3000"
+        depends_on:
+            - backend
+        volumes:
+            - ./src:/app/src
+    backend:
+        container_name: server_sf
+        image: nginx:1.25-alpine3.18
+        working_dir: /www
+        volumes:
+            - ./symfony:/www/symfony
+            - ./.docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+        ports:
+            - "8080:80"
+    php_sf:
+        container_name: php_sf
+        build: ./.docker/php
+        working_dir: /www/symfony
+        user: '1000'
+        volumes:
+            - ./symfony/:/www/symfony
+            - ./symfony/var:/www/symfony/var
+            - ./symfony/vendor:/www/symfony/vendor
+            - ./.docker/php/php-ini-overrides.ini:/etc/php/8.2/fpm/conf.d/99-overrides.ini
+    composer_sf:
+        container_name: composer_sf
+        image: composer:2.5.8
+        user: '1000:1000'
+        working_dir: /www/symfony
+        volumes:
+            - ./symfony:/www/symfony
+            - /.docker/composer/cache:/tmp/cache
+        tty: true
+        stdin_open: true
+        command: [ "bash" ]
+    mysql:
+        container_name: db_mysql_sf
+        image: mysql:latest
+        environment:
+            - MYSQL_ROOT_PASSWORD: Passroot
+            - MYSQL_USER: root
+            - MYSQL_PASSWORD: test
+            - MYSQL_DATABASE: dbmangaverse
+        volumes:
+            - ./data/pg/sf:/var/lib/mysql
+        ports:
+            - "3306:3306"
+    mongo:
+        image: mongo:latest
+        ports:
+            - "27017:27017"
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: root
+            MONGO_INITDB_ROOT_PASSWORD: test
+
+volumes:
+    data:
